@@ -466,7 +466,8 @@ debugger;
 
 
   // console.log(window._env_.APP_PAYMENT_TYPE);
-  const [ref, setRef] = useState(null)
+  const [ref, setRef] = useState(null);
+  
   useEffect(() => {
     getSummaryOrder()
     // getNuviePayment()
