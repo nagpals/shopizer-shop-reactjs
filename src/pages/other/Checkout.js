@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import axios from "axios";
 import React, { Fragment, useEffect, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import MetaTags from "react-meta-tags";
@@ -20,9 +21,9 @@ import {
 } from '@stripe/react-stripe-js';
 import { useToasts } from "react-toast-notifications";
 import { setLoader } from "../../redux/actions/loaderActions";
-// import {
-//   deleteAllFromCart
-// } from "../../redux/actions/cartActions";
+import {
+  deleteAllFromCart
+} from "../../redux/actions/cartActions";
 import Script from 'react-load-script';
 import { multilanguage } from "redux-multilanguage";
 
@@ -219,6 +220,7 @@ const paymentForm = {
     }
   }
 }
+
 const CARD_ELEMENT_OPTIONS = {
   iconStyle: "solid",
   hidePostalCode: true,
@@ -241,6 +243,8 @@ const CARD_ELEMENT_OPTIONS = {
     }
   }
 };
+
+
 const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, strings, location, cartID, defaultStore,getShippingCountry, getState,getShippingState,  shipCountryData, stateData, currentLocation, userData, setLoader, deleteAllFromCart }) => {
   const { pathname } = location;
   const history = useHistory();
@@ -259,6 +263,204 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     mode: "onChange",
     criteriaMode: "all"
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  function loadScript(src) {
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = () => {
+            resolve(true);
+        };
+        script.onerror = () => {
+            resolve(false);
+        };
+        document.body.appendChild(script);
+    });
+}
+
+const displayRazorpay = async (Userdata) => {
+// async function displayRazorpay(d) {
+
+  setLoader(true)
+
+  if( !cartID ) {
+    history.push("/");
+  }
+   
+  var shipping = shippingQuote;
+
+  var Total = shipping.filter(function (el) {
+    return el.title ==="Total" 
+  });
+
+  var TotalPrice = Total[0].value;
+
+  console.log(shippingQuote);
+  console.log(Userdata);
+   
+  try {
+    const res = await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js"
+  );
+ 
+  if (!res) {
+      // alert("Razorpay SDK failed to load. Are you online?");
+      setLoader(false)
+    addToast("Razorpay SDK failed to load. Are you online?", { appearance: "error", autoDismiss: true });
+      return;
+  }
+
+  // creating a new order
+  var ordersData ={
+    amount:TotalPrice
+  }
+  const result = await axios.post("http://localhost:5000/payment/orders",ordersData);
+   
+  if (!result) {
+      // alert("Server error. Are you online?");
+      setLoader(false)
+    addToast("Server error. Are you online?", { appearance: "error", autoDismiss: true });
+      return;
+  }
+
+  debugger;
+
+  // Getting the order details back
+  console.log(result.data)
+  const { amount, id: order_id, currency } = result.data;
+debugger;
+   
+  const options = {
+      key: window._env_.APP_KEY_ID_RAZORPAY, // Enter the Key ID generated from the Dashboard
+      amount: amount.toString(),
+      currency: currency,
+      // name: "Vikrant Kaushik",
+      // description: "Make safe and secure payment",
+      // image: "",
+      order_id: order_id,
+      handler: async function (response) {
+           debugger;
+          onPayment(Userdata, response.razorpay_order_id)
+          const data = {
+              orderCreationId: order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+              amount: amount.toString(),
+              currency: currency
+          };
+          const result = await axios.post("http://localhost:5000/payment/success", data);
+          console.log(result.data)  
+          // success code comes here     
+          // alert(result.data.msg);
+      },
+      prefill: {
+          name: Userdata.firstName+" "+Userdata.lastName,
+          email: Userdata.email,
+          contact: Userdata.phone,
+      },
+      notes: {
+          address: Userdata.address,
+      },
+      theme: {
+          color: "#3399cc",
+      },
+  };
+
+
+  
+
+
+  const paymentObject = new window.Razorpay(options);
+  paymentObject.on('payment.failed', function (response){
+    debugger;
+    console.log(response.error)
+    setLoader(false)
+    addToast(response.error.code, { appearance: "error", autoDismiss: true });
+        // alert(response.error.code);
+        // alert(response.error.description);
+        // alert(response.error.source);
+        // alert(response.error.step);
+        // alert(response.error.reason);
+        // alert(response.error.metadata.order_id);
+        // alert(response.error.metadata.payment_id);
+});
+  paymentObject.open();
+  } catch (error) {
+    console.log(error.response.data)
+    setLoader(false)
+    addToast(error.response.data, { appearance: "error", autoDismiss: true });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -506,6 +708,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
 
   }
   const onSubmitOrder = async (data, elements, stripe) => {
+     
     setLoader(true)
 
     if( !cartID ) {
@@ -533,6 +736,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     // });
   }
   const onPayment = async (data, result) => {
+    debugger;
     let action;
 
     // console.log(data);
@@ -617,12 +821,28 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     }
     // console.log(param);
     // 
+    // if(window._env_.APP_PAYMENT_TYPE === 'RAZORPAY')
+    // {
+    //   debugger;
+    //     // this is for the razorpay only
+    //     var cartItems = cartItems;
+    //     reset({})
+    //     setRef(null);
+    //     deleteAllFromCart(cartID);
+    //     setLocalData('order-email', data.email)
+    //     addToast("Your order has been submitted", { appearance: "success", autoDismiss: true });
+    //     history.push('/order-confirm')
+    //     setLoader(false);
+    // }
+    // else{
     try {
       let response = await WebService.post(action, param);
       // console.log(response)
       if (response) {
+        debugger;
         reset({})
-        ref.clear()
+        setRef(null);
+        // ref.clear()
         deleteAllFromCart(response.id)
         setLocalData('order-email', data.email)
         addToast("Your order has been submitted", { appearance: "success", autoDismiss: true });
@@ -630,6 +850,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       }
       setLoader(false)
     } catch (error) {
+      debugger;
       if (isAccount) {
         addToast("Registering customer already exist", { appearance: "error", autoDismiss: true });
 
@@ -638,6 +859,7 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
       }
       setLoader(false)
     }
+  // }
 
   }
 
@@ -1259,6 +1481,16 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
                         background-color: #fb799c;"className="btn-hover">Pay now</button>
                       </form>'></iframe>
                       }
+                      {/* // ADDED BY VIKRANT */}
+                      {
+                        window._env_.APP_PAYMENT_TYPE === 'RAZORPAY' &&
+                        <div className="place-order mt-100">
+                        <button type="button"  className="btn-hover" onClick={handleSubmit((d) => displayRazorpay(d))}>
+                            {strings["Place your order"]}
+                        </button>
+                        </div>
+                      }
+
                           </div>
                   </div>
 
@@ -1326,7 +1558,7 @@ const mapDispatchToProps = dispatch => {
       dispatch(getShippingState(code));
     },
     deleteAllFromCart: (orderID) => {
-      //dispatch(deleteAllFromCart(orderID));
+      dispatch(deleteAllFromCart(orderID));
     },
   };
 };

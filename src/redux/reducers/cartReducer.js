@@ -56,6 +56,7 @@ const cartReducer = (state = initState, action) => {
   }
 
   if (action.type === DELETE_FROM_CART) {
+    debugger;
     let index = cartItems.cartItems.products.findIndex(order => order.id === product.id);
     cartItems.cartItems.products.splice(index, 1);
     if (cartItems.cartItems.products.length === 0) {
@@ -83,6 +84,7 @@ const cartReducer = (state = initState, action) => {
   }
 
   if (action.type === DELETE_ALL_FROM_CART) {
+    debugger;
     var cart_cookie1 = window._env_.APP_MERCHANT + '_shopizer_cart';
     const cookies = new Cookies();
     cookies.remove(cart_cookie1);

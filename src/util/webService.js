@@ -6,7 +6,7 @@ axios.defaults.baseURL = BASE_URL
 
 export default class WebService {
 
-
+debugger;
     static async post(action, params) {
         let response = await axios.post(action, params)
         return response.data
@@ -33,6 +33,7 @@ export default class WebService {
 
 axios.interceptors.request.use(async (config) => {
     // Do something before request is sent
+    debugger;
     config.baseURL = BASE_URL;
     const token = await getLocalData("token");
     config.headers.common['Authorization'] = token ? 'Bearer ' + token : '';

@@ -158,6 +158,7 @@ export const increaseQuantity = (item, addToast) => {
 //delete from cart
 export const deleteFromCart = (cartID, item, defaultStore, addToast) => {
   return async dispatch => {
+    debugger;
     dispatch(setLoader(true))
     try {
       let action = constant.ACTION.CART + cartID + '/' + constant.ACTION.PRODUCT + item.id + '?store=' + window._env_.APP_MERCHANT;
@@ -181,6 +182,7 @@ export const deleteFromCart = (cartID, item, defaultStore, addToast) => {
 };
 //delete all from cart
 export const deleteAllFromCart = (orderID) => {
+  debugger;
   return dispatch => {
     // if (addToast) {
     //   addToast("Removed All From Cart", {
