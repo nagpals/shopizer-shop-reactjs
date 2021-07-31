@@ -28,6 +28,7 @@ const Layout = ({
   );
 };
 
+
 Layout.propTypes = {
   children: PropTypes.any,
   headerContainerClass: PropTypes.string,
