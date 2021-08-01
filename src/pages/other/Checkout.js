@@ -366,7 +366,7 @@ debugger;
               currency: currency
           };
           const result = await axios.post(window._env_.RAZORPAY_API_BASEURL+"/success", data);
-          console.log(result.data)  
+          console.log(result.data);  
           // success code comes here     
           // alert(result.data.msg);
       },
