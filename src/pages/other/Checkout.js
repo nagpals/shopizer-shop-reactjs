@@ -330,7 +330,7 @@ const displayRazorpay = async (Userdata) => {
   var ordersData ={
     amount:TotalPrice
   }
-  const result = await axios.post("http://localhost:5000/payment/orders",ordersData);
+  const result = await axios.post(window._env_.RAZORPAY_API_BASEURL+"/orders",ordersData);
    
   if (!result) {
       // alert("Server error. Are you online?");
@@ -365,7 +365,7 @@ debugger;
               amount: amount.toString(),
               currency: currency
           };
-          const result = await axios.post("http://localhost:5000/payment/success", data);
+          const result = await axios.post(window._env_.RAZORPAY_API_BASEURL+"/success", data);
           console.log(result.data)  
           // success code comes here     
           // alert(result.data.msg);
