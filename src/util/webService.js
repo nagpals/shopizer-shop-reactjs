@@ -5,8 +5,7 @@ const BASE_URL = window._env_.APP_BASE_URL + window._env_.APP_API_VERSION;
 axios.defaults.baseURL = BASE_URL
 
 export default class WebService {
-
-debugger;
+    
     static async post(action, params) {
         let response = await axios.post(action, params)
         return response.data
@@ -27,8 +26,6 @@ debugger;
         let response = await axios.patch(action, params)
         return response.data
     }
-
-
 }
 
 axios.interceptors.request.use(async (config) => {
@@ -42,6 +39,19 @@ axios.interceptors.request.use(async (config) => {
     // Do something with request error
     return Promise.reject(error);
 });
+
+axios.interceptors.request.use(async (config) => {
+    // Do something before request is sent
+    debugger;
+    config.baseURL = BASE_URL;
+    const token = await getLocalData("token");
+    config.headers.common['Authorization'] = token ? 'Bearer ' + token : '';
+    return config;
+}, (error) => {
+    // Do something with request error
+    return Promise.reject(error);
+});
+
 
 
 axios.interceptors.response.use((response) => {
