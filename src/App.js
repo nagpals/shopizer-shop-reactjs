@@ -6,7 +6,6 @@ import { ToastProvider } from "react-toast-notifications";
 import { multilanguage, loadLanguages } from "redux-multilanguage";
 import { connect } from "react-redux";
 import { BreadcrumbsProvider } from "react-breadcrumbs-dynamic";
-
 import Loader from "./components/loader/loader"
 import Cookie from "./components/consent/Cookie"
 import Cookies from 'universal-cookie';
@@ -77,7 +76,6 @@ const App = (props) => {
     <ToastProvider placement="bottom-left">
       <BreadcrumbsProvider>
         <Router>
-
           <Loader></Loader>
           <Cookie></Cookie>
           <ScrollToTop>

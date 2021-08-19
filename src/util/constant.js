@@ -41,8 +41,8 @@ const Constant = {
         HEADER_MESSAGE: 'headerMessage/',
         AGREEMENT: 'agreement/',
         PROMO: 'promo/',
-        SUCCESS:"/success",
-        RAZORORDERS:'/orders'
+        // SUCCESS:"auth/orders/authorize",
+        // RAZORORDERS:'auth/orders/payment/create'
     }
 }
 

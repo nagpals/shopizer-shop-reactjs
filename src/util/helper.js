@@ -15,6 +15,7 @@ export function removeLocalData(key) {
 }
 export function getLocalData(key) {
   try {
+    debugger;
     let data = localStorage.getItem(key);
     return data
   } catch (error) {

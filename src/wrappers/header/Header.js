@@ -77,6 +77,7 @@ const Header = ({
     try {
       let response = await WebService.get(action);
       if (response) {
+        debugger;
         setCategoryData(response.categories);
       }
     } catch (error) {
@@ -159,7 +160,7 @@ Header.propTypes = {
 };
 
 const mapStateToProps = state => {
-  return {
+    return {
     merchant: state.merchantData.merchant,
     currentLanguageCode: state.multilanguage.currentLanguageCode,
     defaultStore: state.merchantData.defaultStore

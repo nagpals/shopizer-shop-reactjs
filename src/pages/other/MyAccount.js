@@ -318,6 +318,7 @@ const MyAccount = ({ setUser, deleteAllFromCart, merchant, strings, location, se
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const getProfile = async () => {
+    debugger;
     let action = constant.ACTION.AUTH + constant.ACTION.CUSTOMER + constant.ACTION.PROFILE;
     try {
       let response = await WebService.get(action);

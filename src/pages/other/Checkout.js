@@ -27,6 +27,8 @@ import {
 import Script from 'react-load-script';
 import { multilanguage } from "redux-multilanguage";
 
+import { getLocalData } from '../../util/helper';
+
 
 
 const stripePromise = loadStripe(window._env_.APP_STRIPE_KEY);
@@ -264,22 +266,6 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
     criteriaMode: "all"
   });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   function loadScript(src) {
     return new Promise((resolve) => {
         const script = document.createElement("script");
@@ -295,10 +281,16 @@ const Checkout = ({shipStateData, isLoading, currentLanguageCode, merchant, stri
 }
 
 const displayRazorpay = async (Userdata) => {
-// async function displayRazorpay(d) {
+debugger;
 
-  setLoader(true)
+  const token = await getLocalData("token");
+  if(token=="")
+  {
+    history.push('/login');
+    return;
+  }
 
+  setLoader(true);
   if( !cartID ) {
     history.push("/");
   }
@@ -310,9 +302,6 @@ const displayRazorpay = async (Userdata) => {
   });
 
   var TotalPrice = Total[0].value;
-
-  console.log(shippingQuote);
-  console.log(Userdata);
    
   try {
     const res = await loadScript(
@@ -320,33 +309,44 @@ const displayRazorpay = async (Userdata) => {
   );
  
   if (!res) {
-      // alert("Razorpay SDK failed to load. Are you online?");
       setLoader(false)
-    addToast("Razorpay SDK failed to load. Are you online?", { appearance: "error", autoDismiss: true });
-      return;
-  }
-
-  // creating a new order
-  var ordersData ={
-    amount:TotalPrice
-  }
-  console.log(constant)
-  const result = await axios.post(window._env_.RAZORPAY_API_BASEURL+constant.ACTION.RAZORORDERS,ordersData);
-   
-  if (!result) {
-      // alert("Server error. Are you online?");
-      setLoader(false)
-    addToast("Server error. Are you online?", { appearance: "error", autoDismiss: true });
+      addToast("Razorpay SDK failed to load. Are you online?", { appearance: "error", autoDismiss: true });
       return;
   }
 
   debugger;
+  var param ={
+    "amount":TotalPrice,
+    "currency": "INR",
+  }
+//------------------------------------- new implementation ------------------------------
 
-  // Getting the order details back
-  console.log(result.data)
-  const { amount, id: order_id, currency } = result.data;
-debugger;
-   
+    let action = "auth/orders/payment/create";
+    
+    try {
+      let response = await WebService.post(action, param);
+        if((response.modelJson.map.status).toUpperCase()!="CREATED"){
+          debugger;
+                setLoader(false);
+                addToast("Server error. Are you online?", { appearance: "error", autoDismiss: true });
+                return;
+        }else{
+          debugger;
+          console.log(response.data)
+          var { amount, id, currency } = response.modelJson.map;
+          debugger;  
+        }        
+    } catch (error) {
+      debugger;
+    }
+
+
+
+
+
+// -------------------------------------- new implementation ends here -----------------------
+
+  debugger;   
   const options = {
       key: window._env_.APP_KEY_ID_RAZORPAY, // Enter the Key ID generated from the Dashboard
       amount: amount.toString(),
@@ -354,22 +354,32 @@ debugger;
       // name: "Vikrant Kaushik",
       // description: "Make safe and secure payment",
       // image: "",
-      order_id: order_id,
+      order_id: id,
       handler: async function (response) {
            debugger;
-          onPayment(Userdata, response.razorpay_order_id)
-          const data = {
-              orderCreationId: order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
-              amount: amount.toString(),
-              currency: currency
+           
+          const param = {
+              "payment_id": response.razorpay_payment_id,
+              "order_id": response.razorpay_order_id,
+              "signature": response.razorpay_signature
           };
-          const result = await axios.post(window._env_.RAZORPAY_API_BASEURL+constant.ACTION.SUCCESS, data);
-          console.log(result.data);  
-          // success code comes here     
-          // alert(result.data.msg);
+          debugger;
+          
+          let action = "auth/orders/authorize";    
+          try {
+            let responsedata = await WebService.post(action, param);
+              if(responsedata.toUpperCase()!="Success".toUpperCase()){
+                debugger;
+                      setLoader(false)  
+                      addToast(responsedata, { appearance: "error", autoDismiss: true });
+                      return;
+              }else{
+                debugger;
+                onPayment(Userdata, response.razorpay_order_id);    
+              }        
+          } catch (error) {
+            debugger;
+          } 
       },
       prefill: {
           name: Userdata.firstName+" "+Userdata.lastName,
@@ -382,12 +392,12 @@ debugger;
       theme: {
           color: "#3399cc",
       },
+      "modal": {
+        "ondismiss": function(){
+          setLoader(false);
+        }
+    }
   };
-
-
-  
-
-
   const paymentObject = new window.Razorpay(options);
   paymentObject.on('payment.failed', function (response){
     debugger;
@@ -404,6 +414,7 @@ debugger;
 });
   paymentObject.open();
   } catch (error) {
+    debugger;
     console.log(error.response.data)
     setLoader(false)
     addToast(error.response.data, { appearance: "error", autoDismiss: true });
@@ -480,6 +491,7 @@ debugger;
     onChangeShipping()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const getSummaryOrder = async () => {
     setLoader(true)
@@ -751,8 +763,8 @@ debugger;
         "payment": {
           "paymentType": "CREDITCARD",
           "transactionType": "CAPTURE",
-          "paymentModule": "stripe",
-          "paymentToken": result.token,
+          "paymentModule": window._env_.APP_PAYMENT_TYPE === 'RAZORPAY'?"RAZORPAY":"stripe",
+          "paymentToken": window._env_.APP_PAYMENT_TYPE === 'RAZORPAY'?result:result.token,
           "amount": shippingQuote[shippingQuote.length - 1].value
         }
       }
@@ -812,34 +824,19 @@ debugger;
         "shippingQuote": selectedOptions,
         "currency": merchant.currency,
         "payment": {
-          "paymentType": "CREDITCARD",
+          "paymentType": "CARD",
           "transactionType": "CAPTURE",
-          "paymentModule": "stripe",
-          "paymentToken": result.token,
+          "paymentModule": window._env_.APP_PAYMENT_TYPE === 'RAZORPAY'?"RAZORPAY":"stripe",
+          "paymentToken": window._env_.APP_PAYMENT_TYPE === 'RAZORPAY'?result:result.token,
           "amount": shippingQuote[shippingQuote.length - 1].value
         },
         "customer": customer
       }
     }
-    // console.log(param);
-    // 
-    // if(window._env_.APP_PAYMENT_TYPE === 'RAZORPAY')
-    // {
-    //   debugger;
-    //     // this is for the razorpay only
-    //     var cartItems = cartItems;
-    //     reset({})
-    //     setRef(null);
-    //     deleteAllFromCart(cartID);
-    //     setLocalData('order-email', data.email)
-    //     addToast("Your order has been submitted", { appearance: "success", autoDismiss: true });
-    //     history.push('/order-confirm')
-    //     setLoader(false);
-    // }
-    // else{
+
+    debugger;
     try {
       let response = await WebService.post(action, param);
-      // console.log(response)
       if (response) {
         debugger;
         reset({})
@@ -861,7 +858,6 @@ debugger;
       }
       setLoader(false)
     }
-  // }
 
   }
 

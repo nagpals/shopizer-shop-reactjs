@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { multilanguage } from "redux-multilanguage";
 import { connect } from "react-redux";
-
 import { setCategoryID } from "../../redux/actions/productActions";
 import { setContent } from "../../redux/actions/contentAction";
 const NavMenu = ({ props, strings, menuWhiteClass, sidebarMenu, categories, contents, setCategoryID, setContent }) => {

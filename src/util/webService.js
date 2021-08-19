@@ -5,8 +5,9 @@ const BASE_URL = window._env_.APP_BASE_URL + window._env_.APP_API_VERSION;
 axios.defaults.baseURL = BASE_URL
 
 export default class WebService {
-    
+    debugger;
     static async post(action, params) {
+        debugger;
         let response = await axios.post(action, params)
         return response.data
     }
@@ -15,6 +16,7 @@ export default class WebService {
         return response.data
     }
     static async get(action) {
+        debugger;
         let response = await axios.get(action)
         return response.data
     }
@@ -33,34 +35,36 @@ axios.interceptors.request.use(async (config) => {
     debugger;
     config.baseURL = BASE_URL;
     const token = await getLocalData("token");
+    // const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbkBzaG9waXplci5jb20iLCJhdWQiOiJhcGkiLCJleHAiOjE2Mjk3MDc3NjAsImlhdCI6MTYyOTEwMjk2MH0.XDp11lwLwZFJLgy4AcMXwPrDxvwWCKhBqTyax-6bpsMaPW18omvn-e7JroZIARn5ByTmVSuIbSnPTdpmRyBeLA";
     config.headers.common['Authorization'] = token ? 'Bearer ' + token : '';
     return config;
 }, (error) => {
+    debugger;
     // Do something with request error
     return Promise.reject(error);
 });
 
-axios.interceptors.request.use(async (config) => {
-    // Do something before request is sent
-    debugger;
-    config.baseURL = BASE_URL;
-    const token = await getLocalData("token");
-    config.headers.common['Authorization'] = token ? 'Bearer ' + token : '';
-    return config;
-}, (error) => {
-    // Do something with request error
-    return Promise.reject(error);
-});
+// axios.interceptors.request.use(async (config) => {
+//     // Do something before request is sent
+//     config.baseURL = BASE_URL;
+//     const token = await getLocalData("token");
+//     config.headers.common['Authorization'] = token ? 'Bearer ' + token : '';
+//     return config;
+// }, (error) => {
+//     // Do something with request error
+//     return Promise.reject(error);
+// });
 
 
 
 axios.interceptors.response.use((response) => {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
-
+debugger;
     return response;
 }, (error) => {
 
+    debugger;
     // // Any status codes that falls outside the range of 2xx cause this function to trigger
     // // Do something with response error
 
@@ -68,7 +72,7 @@ axios.interceptors.response.use((response) => {
     // const originalRequest = config;
 
     if (response.status === 401 || response.status === 404) {
-
+        debugger;
         return Promise.reject(error);
     }
     else {
